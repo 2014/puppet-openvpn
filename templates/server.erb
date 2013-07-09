@@ -22,6 +22,7 @@ tls-server
 log-append <%= scope.lookupvar('logfile') %>
 <% end -%>
 status <%= scope.lookupvar('status_log') %>
+log-append <%= scope.lookupvar('log_append') %>
 <% if scope.lookupvar('local') != '' -%>
 local <%= scope.lookupvar('local') %>
 <% end -%>

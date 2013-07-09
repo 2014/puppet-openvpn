@@ -126,6 +126,7 @@ define openvpn::server(
   $logfile = false,
   $port = '1194',
   $proto = 'tcp',
+  $log_append = "${name}/openvpn-status.log",
   $status_log = "${name}/openvpn-status.log",
   $server = '',
   $push = [],
