@@ -1,5 +1,5 @@
 mode server
-proto <%= scope.lookupvar('proto') %>-server
+proto <%= scope.lookupvar('proto') %>
 port <%= scope.lookupvar('port') %>
 dev <%= scope.lookupvar('dev') %>
 
@@ -12,12 +12,15 @@ cert /etc/openvpn/<%= scope.lookupvar('name') %>/keys/server.crt
 key /etc/openvpn/<%= scope.lookupvar('name') %>/keys/server.key
 dh /etc/openvpn/<%= scope.lookupvar('name') %>/keys/dh1024.pem
 
+cipher <%= cipher =>
 <% if scope.lookupvar('tls_server') -%>
 tls-server
 <% end -%>
 <% if scope.lookupvar('compression') != '' -%>
 <%= scope.lookupvar('compression') %>
 <% end -%>
+mute <%= mute %>
+verb <%= verb %>
 <% if scope.lookupvar('logfile') -%>
 log-append <%= scope.lookupvar('logfile') %>
 <% end -%>
@@ -29,6 +32,7 @@ local <%= scope.lookupvar('local') %>
 <% if scope.lookupvar('ipp') -%>
 ifconfig-pool-persist <%= scope.lookupvar('name') %>/vpn-ipp.txt
 <% end -%>
+
 <% if scope.lookupvar('server') != '' -%>
 server <%= scope.lookupvar('server') %>
 <% end -%>

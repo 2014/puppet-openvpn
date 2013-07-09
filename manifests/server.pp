@@ -119,6 +119,7 @@ define openvpn::server(
   $compression = 'comp-lzo',
   $dev = 'tun0',
   $user = 'nobody',
+  $cipher = 'BF-CBC',
   $group = false,
   $ipp = false,
   $ip_pool = [],
@@ -126,7 +127,9 @@ define openvpn::server(
   $logfile = false,
   $port = '1194',
   $proto = 'tcp',
-  $log_append = "${name}/openvpn-status.log",
+  $mute = '20',
+  $verb = '4',
+  $log_append = "${name}/openvpn.log",
   $status_log = "${name}/openvpn-status.log",
   $server = '',
   $push = [],
@@ -210,7 +213,7 @@ define openvpn::server(
             ensure  => present,
             purge   => true,
             recurse => true,
-            content => $dh_key,
+            content => $ca_key,
             require  => File["/etc/openvpn/${name}/easy-rsa/vars"];
         }
     } else {
