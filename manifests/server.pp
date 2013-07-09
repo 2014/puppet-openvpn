@@ -160,7 +160,6 @@ define openvpn::server(
     }
 
     file { "/etc/openvpn/${name}/easy-rsa":
-        purge   => true,
         recurse => true,
         ensure  => directory,
         notify  => Exec["fix_easyrsa_file_permissions_${name}"],
