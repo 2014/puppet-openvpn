@@ -151,20 +151,12 @@ define openvpn::server(
             ensure  => directory;
     }
 
-    file { ${openvpn::params::easyrsa_source}:
-        owner   => root,
-        group   => root,
+    file { "/etc/openvpn/${name}/easy-rsa":
         purge   => true,
         recurse => true,
-        source  => "puppet://modules/openvpn/easy-rsa-2.0",
-    }
-
-    exec {
-        "copy easy-rsa to openvpn config folder ${name}":
-            command => "/bin/cp -r ${openvpn::params::easyrsa_source} /etc/openvpn/${name}/easy-rsa",
-            creates => "/etc/openvpn/${name}/easy-rsa",
-            notify  => Exec["fix_easyrsa_file_permissions_${name}"],
-            require => File["/etc/openvpn/${name}", "${openvpn::params::easyrsa_source}"];
+        ensure  => directory,
+        notify  => Exec["fix_easyrsa_file_permissions_${name}"],
+        source  => "puppet:///modules/openvpn/easy-rsa-2.0",
     }
 
     exec {
@@ -177,12 +169,12 @@ define openvpn::server(
         "/etc/openvpn/${name}/easy-rsa/vars":
             ensure  => present,
             content => template('openvpn/vars.erb'),
-            require => Exec["copy easy-rsa to openvpn config folder ${name}"];
+            require => File["/etc/openvpn/${name}/easy-rsa"];
     }
 
     file {
       "/etc/openvpn/${name}/easy-rsa/openssl.cnf":
-        require => Exec["copy easy-rsa to openvpn config folder ${name}"];
+        require => File["/etc/openvpn/${name}/easy-rsa"];
     }
     if $openvpn::params::link_openssl_cnf == true {
         File["/etc/openvpn/${name}/easy-rsa/openssl.cnf"] {
@@ -218,7 +210,7 @@ define openvpn::server(
         "/etc/openvpn/${name}/keys":
             ensure  => link,
             target  => "/etc/openvpn/${name}/easy-rsa/keys",
-            require => Exec["copy easy-rsa to openvpn config folder ${name}"];
+            require => File["/etc/openvpn/${name}/easy-rsa"];
     }
 
     if $::osfamily == 'Debian' {
