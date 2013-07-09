@@ -12,7 +12,7 @@ cert /etc/openvpn/<%= scope.lookupvar('name') %>/keys/server.crt
 key /etc/openvpn/<%= scope.lookupvar('name') %>/keys/server.key
 dh /etc/openvpn/<%= scope.lookupvar('name') %>/keys/dh1024.pem
 
-cipher <%= cipher =>
+cipher <%= cipher %>
 <% if scope.lookupvar('tls_server') -%>
 tls-server
 <% end -%>
