@@ -33,5 +33,4 @@ class openvpn::params {
     /(Debian|RedHat)/ => true,
     default           => false
   }
-
 }

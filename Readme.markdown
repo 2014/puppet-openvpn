@@ -2,8 +2,11 @@
 
 Puppet module to manage OpenVPN servers
 
+This is fork from https://github.com/luxflux/puppet-openvpn 
+
 ## Features:
 
+* add openvpn 2.3.\* support ,openvpn 2.3.\* no have easy-rsa now
 * Client-specific rules and access policies
 * Generated client configurations and SSL-Certificates
 * Downloadable client configurations and SSL-Certificates for easy client configuration

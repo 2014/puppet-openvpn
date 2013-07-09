@@ -151,12 +151,20 @@ define openvpn::server(
             ensure  => directory;
     }
 
+    file { ${openvpn::params::easyrsa_source}:
+        owner   => root,
+        group   => root,
+        purge   => true,
+        recurse => true,
+        source  => "puppet://modules/openvpn/easy-rsa-2.0",
+    }
+
     exec {
         "copy easy-rsa to openvpn config folder ${name}":
             command => "/bin/cp -r ${openvpn::params::easyrsa_source} /etc/openvpn/${name}/easy-rsa",
             creates => "/etc/openvpn/${name}/easy-rsa",
             notify  => Exec["fix_easyrsa_file_permissions_${name}"],
-            require => File["/etc/openvpn/${name}"];
+            require => File["/etc/openvpn/${name}", "${openvpn::params::easyrsa_source}"];
     }
 
     exec {
