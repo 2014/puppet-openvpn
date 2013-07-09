@@ -128,7 +128,11 @@ define openvpn::server(
   $proto = 'tcp',
   $status_log = "${name}/openvpn-status.log",
   $server = '',
-  $push = []
+  $push = [],
+  $dh_key = 'undef',
+  $ca_key = 'undef',
+  $server_cert = 'undef',
+  $server_key = 'undef'
 ) {
 
   include openvpn
@@ -182,28 +186,68 @@ define openvpn::server(
             target => "/etc/openvpn/${name}/easy-rsa/openssl-1.0.0.cnf"
         }
     }
-
-    exec {
-        "generate dh param ${name}":
-            command  => '. ./vars && ./clean-all && ./build-dh',
-            cwd      => "/etc/openvpn/${name}/easy-rsa",
-            creates  => "/etc/openvpn/${name}/easy-rsa/keys/dh1024.pem",
-            provider => 'shell',
+    if ( $dh_key != 'undef' ) {
+        file { "/etc/openvpn/${name}/easy-rsa/keys/dh1024.pem":
+            ensure  => present,
+            purge   => true,
+            recurse => true,
+            content => $dh_key,
             require  => File["/etc/openvpn/${name}/easy-rsa/vars"];
-
-        "initca ${name}":
+        }
+    } else {
+        exec {
+            "generate dh param ${name}":
+              command  => '. ./vars && ./clean-all && ./build-dh',
+              cwd      => "/etc/openvpn/${name}/easy-rsa",
+              creates  => "/etc/openvpn/${name}/easy-rsa/keys/dh1024.pem",
+              provider => 'shell',
+              require  => File["/etc/openvpn/${name}/easy-rsa/vars"];
+        }
+    }
+    if ( $ca_key != 'undef' ) {
+        file { "/etc/openvpn/${name}/easy-rsa/keys/dh1024.pem":
+            ensure  => present,
+            purge   => true,
+            recurse => true,
+            content => $dh_key,
+            require  => File["/etc/openvpn/${name}/easy-rsa/vars"];
+        }
+    } else {
+        exec {
+            "initca ${name}":
             command  => '. ./vars && ./pkitool --initca',
             cwd      => "/etc/openvpn/${name}/easy-rsa",
             creates  => "/etc/openvpn/${name}/easy-rsa/keys/ca.key",
             provider => 'shell',
             require  => [ Exec["generate dh param ${name}"], File["/etc/openvpn/${name}/easy-rsa/openssl.cnf"] ];
-
-        "generate server cert ${name}":
+        }
+    }
+    if ( $server_cert != 'undef' ) {
+        file { "/etc/openvpn/${name}/easy-rsa/keys/server.crt":
+            ensure  => present,
+            purge   => true,
+            recurse => true,
+            content => $server_cert,
+            require  => File["/etc/openvpn/${name}/easy-rsa/vars"];
+        }
+    } 
+    if ( $server_key != 'undef' ) {
+        file { "/etc/openvpn/${name}/easy-rsa/keys/server.key":
+            ensure  => present,
+            purge   => true,
+            recurse => true,
+            content => $server_key,
+            require  => File["/etc/openvpn/${name}/easy-rsa/vars"];
+        }
+    }else {
+        exec {
+            "generate server cert ${name}":
             command  => '. ./vars && ./pkitool --server server',
             cwd      => "/etc/openvpn/${name}/easy-rsa",
             creates  => "/etc/openvpn/${name}/easy-rsa/keys/server.key",
             provider => 'shell',
             require  => Exec["initca ${name}"];
+        }
     }
 
     file {
