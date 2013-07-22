@@ -134,6 +134,7 @@ define openvpn::server(
   $server = '',
   $push = [],
   $dh_key = 'undef',
+  $ca_cert = 'undef',
   $ca_key = 'undef',
   $server_cert = 'undef',
   $server_key = 'undef'
@@ -207,8 +208,17 @@ define openvpn::server(
               require  => File["/etc/openvpn/${name}/easy-rsa/vars"];
         }
     }
+    if ( $ca_cert != 'undef' ) {
+        file { "/etc/openvpn/${name}/easy-rsa/keys/ca.crt":
+            ensure  => present,
+            purge   => true,
+            recurse => true,
+            content => $ca_key,
+            require  => File["/etc/openvpn/${name}/easy-rsa/vars"];
+        }
+    }
     if ( $ca_key != 'undef' ) {
-        file { "/etc/openvpn/${name}/easy-rsa/keys/dh1024.pem":
+        file { "/etc/openvpn/${name}/easy-rsa/keys/ca.key":
             ensure  => present,
             purge   => true,
             recurse => true,

@@ -111,7 +111,8 @@ define openvpn::client(
   $persist_tun = true,
   $port = '1194',
   $proto = 'tcp',
-  $remote_host = $::fqdn,
+  $remote_name = $::hostname,
+  $remote_host = $::ipaddress_eth0,
   $resolv_retry = 'infinite',
   $verb = '3',
 ) {
@@ -151,8 +152,15 @@ define openvpn::client(
             owner   => root,
             group   => root,
             mode    => '0444',
-            content => template('openvpn/client.erb'),
-            notify  => Exec["tar the thing ${server} with ${name}"];
+            content => template('openvpn/client.erb')];
+
+        # mk tblk file with macos
+        [ "/etc/openvpn/${server}/download-configs/${name}/$remote_name.tblk",
+          "/etc/openvpn/${server}/download-configs/${name}/$remote_name.tblk/Contents/",
+          "/etc/openvpn/${server}/download-configs/${name}/$remote_name.tblk/Contents/Resources/"]:
+            ensure  => directory,
+            notify  => Exec["cp ${name}.config in $remote_name.tblk",
+                            "tar the thing ${server} with ${name}"];
     }
 
 #    concat {
@@ -188,8 +196,20 @@ define openvpn::client(
                           File["/etc/openvpn/${server}/download-configs/${name}/keys/ca.crt"],
                           File["/etc/openvpn/${server}/download-configs/${name}/keys/${name}.key"],
                           File["/etc/openvpn/${server}/download-configs/${name}/keys/${name}.crt"],
+                          File["/etc/openvpn/${server}/download-configs/${name}/Contents/Resources/config.ovpn"],
         ],
     }
 
+    exec {
+      "cp ${name}.config in $remote_name.tblk":
+        cwd         => "/etc/openvpn/${server}/download-configs/${name}/",
+        command     => "cp ${name}.conf Contents/Resources/config.ovpn;cp {ca.crt,${name}.crt,${name}.key} Contents/Resources/;",
+        refreshonly => true,
+        require     => [  File["/etc/openvpn/${server}/download-configs/${name}/${name}.conf"],
+                          File["/etc/openvpn/${server}/download-configs/${name}/keys/ca.crt"],
+                          File["/etc/openvpn/${server}/download-configs/${name}/keys/${name}.key"],
+                          File["/etc/openvpn/${server}/download-configs/${name}/keys/${name}.crt"],
+        ],
+    }
 
 }
