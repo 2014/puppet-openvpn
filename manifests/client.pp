@@ -133,6 +133,12 @@ define openvpn::client(
           "/etc/openvpn/${server}/download-configs/${name}/keys"]:
             ensure  => directory;
 
+        # mk tblk file with macos
+        [ "/etc/openvpn/${server}/download-configs/${name}/${name}@$remote_name.tblk",
+          "/etc/openvpn/${server}/download-configs/${name}/${name}@$remote_name.tblk/Contents/",
+          "/etc/openvpn/${server}/download-configs/${name}/${name}@$remote_name.tblk/Contents/Resources/"]:
+            ensure  => directory;
+
         "/etc/openvpn/${server}/download-configs/${name}/keys/${name}.crt":
             ensure  => link,
             target  => "/etc/openvpn/${server}/easy-rsa/keys/${name}.crt",
@@ -152,15 +158,8 @@ define openvpn::client(
             owner   => root,
             group   => root,
             mode    => '0444',
-            content => template('openvpn/client.erb')];
-
-        # mk tblk file with macos
-        [ "/etc/openvpn/${server}/download-configs/${name}/$remote_name.tblk",
-          "/etc/openvpn/${server}/download-configs/${name}/$remote_name.tblk/Contents/",
-          "/etc/openvpn/${server}/download-configs/${name}/$remote_name.tblk/Contents/Resources/"]:
-            ensure  => directory,
-            notify  => Exec["cp ${name}.config in $remote_name.tblk",
-                            "tar the thing ${server} with ${name}"];
+            content => template('openvpn/client.erb'),
+            notify  => Exec["cp ${name}.config in ${name}@$remote_name.tblk"];
     }
 
 #    concat {
@@ -173,6 +172,20 @@ define openvpn::client(
 #            notify  => Exec["tar the thing ${server} with ${name}"],
 #            require => [ File['/etc/openvpn'], File["/etc/openvpn/${server}/download-configs/${name}"] ];
 #    }
+
+    exec {
+      "cp ${name}.config in ${name}@$remote_name.tblk":
+        cwd         => "/etc/openvpn/${server}/download-configs/${name}/",
+        command     => "cp ${name}.conf ${name}@$remote_name.tblk/Contents/Resources/config.ovpn; cp keys/{ca.crt,${name}.crt,${name}.key} ${name}@$remote_name.tblk/Contents/Resources/;",
+        refreshonly => true,
+        require     => [  File["/etc/openvpn/${server}/download-configs/${name}/${name}.conf"],
+                          File["/etc/openvpn/${server}/download-configs/${name}/keys/ca.crt"],
+                          File["/etc/openvpn/${server}/download-configs/${name}/keys/${name}.key"],
+                          File["/etc/openvpn/${server}/download-configs/${name}/keys/${name}.crt"],
+                          File["/etc/openvpn/${server}/download-configs/${name}/${name}@$remote_name.tblk"],
+        ],
+        notify => Exec["tar the thing ${server} with ${name}"];
+    }
 
     exec {
         "tar the thing ${server} with ${name}":
@@ -191,19 +204,6 @@ define openvpn::client(
       "generate ${name}.ovpn in ${server}":
         cwd         => "/etc/openvpn/${server}/download-configs/",
         command     => "/bin/rm ${name}.ovpn; cat  ${name}/${name}.conf|perl -lne 'if(m|^ca keys/ca.crt|){ chomp(\$ca=`cat ${name}/keys/ca.crt`); print \"<ca>\n\$ca\n</ca>\"} elsif(m|^cert keys/${name}.crt|) { chomp(\$crt=`cat ${name}/keys/${name}.crt`); print \"<cert>\n\$crt\n</cert>\"} elsif(m|^key keys/${name}.key|){ chomp(\$key=`cat ${name}/keys/${name}.key`); print \"<key>\n\$key\n</key>\"} else { print} ' > ${name}.ovpn",
-        refreshonly => true,
-        require     => [  File["/etc/openvpn/${server}/download-configs/${name}/${name}.conf"],
-                          File["/etc/openvpn/${server}/download-configs/${name}/keys/ca.crt"],
-                          File["/etc/openvpn/${server}/download-configs/${name}/keys/${name}.key"],
-                          File["/etc/openvpn/${server}/download-configs/${name}/keys/${name}.crt"],
-                          File["/etc/openvpn/${server}/download-configs/${name}/Contents/Resources/config.ovpn"],
-        ],
-    }
-
-    exec {
-      "cp ${name}.config in $remote_name.tblk":
-        cwd         => "/etc/openvpn/${server}/download-configs/${name}/",
-        command     => "cp ${name}.conf Contents/Resources/config.ovpn;cp {ca.crt,${name}.crt,${name}.key} Contents/Resources/;",
         refreshonly => true,
         require     => [  File["/etc/openvpn/${server}/download-configs/${name}/${name}.conf"],
                           File["/etc/openvpn/${server}/download-configs/${name}/keys/ca.crt"],
