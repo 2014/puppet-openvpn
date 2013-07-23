@@ -135,8 +135,9 @@ define openvpn::client(
 
         # mk tblk file with macos
         [ "/etc/openvpn/${server}/download-configs/${name}/${remote_name}.${name}.tblk",
-          "/etc/openvpn/${server}/download-configs/${name}/${remote_name}.${name}.tblk/Contents/",
-          "/etc/openvpn/${server}/download-configs/${name}/${remote_name}.${name}.tblk/Contents/Resources/"]:
+          "/etc/openvpn/${server}/download-configs/${name}/${remote_name}.${name}.tblk/Contents",
+          "/etc/openvpn/${server}/download-configs/${name}/${remote_name}.${name}.tblk/Contents/Resources",
+          "/etc/openvpn/${server}/download-configs/${name}/${remote_name}.${name}.tblk/Contents/Resources/keys"]:
             ensure  => directory;
 
         "/etc/openvpn/${server}/download-configs/${name}/keys/${name}.crt":
@@ -176,14 +177,13 @@ define openvpn::client(
     exec {
       "cp ${name}.config in ${remote_name}.${name}.tblk":
         cwd         => "/etc/openvpn/${server}/download-configs/${name}/",
-        command     => "cp ${name}.conf ${remote_name}.${name}.tblk/Contents/Resources/config.ovpn; cp keys/{ca.crt,${name}.crt,${name}.key} ${remote_name}.${name}.tblk/Contents/Resources/;",
+        command     => "cp ${name}.conf ${remote_name}.${name}.tblk/Contents/Resources/config.ovpn; cp keys/* ${remote_name}.${name}.tblk/Contents/Resources/keys/;",
         refreshonly => true,
         require     => [  File["/etc/openvpn/${server}/download-configs/${name}/${name}.conf"],
                           File["/etc/openvpn/${server}/download-configs/${name}/keys/ca.crt"],
                           File["/etc/openvpn/${server}/download-configs/${name}/keys/${name}.key"],
                           File["/etc/openvpn/${server}/download-configs/${name}/keys/${name}.crt"],
-                          File["/etc/openvpn/${server}/download-configs/${name}/${remote_name}.${name}.tblk"],
-        ],
+                          File["/etc/openvpn/${server}/download-configs/${name}/${remote_name}.${name}.tblk/Contents/Resources/keys"] ],
         notify => Exec["tar the thing ${server} with ${name}"];
     }
 
