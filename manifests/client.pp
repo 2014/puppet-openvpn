@@ -134,9 +134,9 @@ define openvpn::client(
             ensure  => directory;
 
         # mk tblk file with macos
-        [ "/etc/openvpn/${server}/download-configs/${name}/${name}@$remote_name.tblk",
-          "/etc/openvpn/${server}/download-configs/${name}/${name}@$remote_name.tblk/Contents/",
-          "/etc/openvpn/${server}/download-configs/${name}/${name}@$remote_name.tblk/Contents/Resources/"]:
+        [ "/etc/openvpn/${server}/download-configs/${name}/${remote_name}.${name}.tblk",
+          "/etc/openvpn/${server}/download-configs/${name}/${remote_name}.${name}.tblk/Contents/",
+          "/etc/openvpn/${server}/download-configs/${name}/${remote_name}.${name}.tblk/Contents/Resources/"]:
             ensure  => directory;
 
         "/etc/openvpn/${server}/download-configs/${name}/keys/${name}.crt":
@@ -159,7 +159,7 @@ define openvpn::client(
             group   => root,
             mode    => '0444',
             content => template('openvpn/client.erb'),
-            notify  => Exec["cp ${name}.config in ${name}@$remote_name.tblk"];
+            notify  => Exec["cp ${name}.config in ${remote_name}.${name}.tblk"];
     }
 
 #    concat {
@@ -174,15 +174,15 @@ define openvpn::client(
 #    }
 
     exec {
-      "cp ${name}.config in ${name}@$remote_name.tblk":
+      "cp ${name}.config in ${remote_name}.${name}.tblk":
         cwd         => "/etc/openvpn/${server}/download-configs/${name}/",
-        command     => "cp ${name}.conf ${name}@$remote_name.tblk/Contents/Resources/config.ovpn; cp keys/{ca.crt,${name}.crt,${name}.key} ${name}@$remote_name.tblk/Contents/Resources/;",
+        command     => "cp ${name}.conf ${remote_name}.${name}.tblk/Contents/Resources/config.ovpn; cp keys/{ca.crt,${name}.crt,${name}.key} ${remote_name}.${name}.tblk/Contents/Resources/;",
         refreshonly => true,
         require     => [  File["/etc/openvpn/${server}/download-configs/${name}/${name}.conf"],
                           File["/etc/openvpn/${server}/download-configs/${name}/keys/ca.crt"],
                           File["/etc/openvpn/${server}/download-configs/${name}/keys/${name}.key"],
                           File["/etc/openvpn/${server}/download-configs/${name}/keys/${name}.crt"],
-                          File["/etc/openvpn/${server}/download-configs/${name}/${name}@$remote_name.tblk"],
+                          File["/etc/openvpn/${server}/download-configs/${name}/${remote_name}.${name}.tblk"],
         ],
         notify => Exec["tar the thing ${server} with ${name}"];
     }
