@@ -129,6 +129,7 @@ define openvpn::server(
   $proto = 'tcp',
   $mute = '20',
   $verb = '4',
+  $keepalive = '10 120',
   $log_append = "${name}/openvpn.log",
   $status_log = "${name}/openvpn-status.log",
   $server = '',
