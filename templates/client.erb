@@ -1,7 +1,7 @@
 client
-ca keys/ca.crt
-cert keys/<%= scope.lookupvar('name') %>.crt
-key keys/<%= scope.lookupvar('name') %>.key
+ca ca.crt
+cert <%= scope.lookupvar('name') %>.crt
+key <%= scope.lookupvar('name') %>.key
 dev <%= scope.lookupvar('dev') %>
 proto <%= scope.lookupvar('proto') %>
 remote <%= scope.lookupvar('remote_host') %> <%= scope.lookupvar('port') %>
