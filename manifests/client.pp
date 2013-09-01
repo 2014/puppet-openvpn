@@ -176,10 +176,19 @@ define openvpn::client(
     exec {
       "cp ${name}.config in ${remote_name}.${name}.tblk":
         cwd         => "/etc/openvpn/${server}/download-configs/${name}/",
-        command     => "cp ${name}.conf ${remote_name}.${name}.tblk/Contents/Resources/config.ovpn; cp * ${remote_name}.${name}.tblk/Contents/Resources/;",
+        command     => "cp ${name}.conf ${remote_name}.${name}.tblk/Contents/Resources/config.ovpn;",
         refreshonly => true,
         require     => [  File["/etc/openvpn/${server}/download-configs/${name}/${name}.conf"],
-                          File["/etc/openvpn/${server}/download-configs/${name}/ca.crt"],
+                          File["/etc/openvpn/${server}/download-configs/${name}/${remote_name}.${name}.tblk/Contents/Resources/"] ],
+        notify => Exec["cp ${name} cert in ${remote_name}.${name}.tblk"];
+    }
+
+    exec {
+      "cp ${name} cert in ${remote_name}.${name}.tblk":
+        cwd         => "/etc/openvpn/${server}/download-configs/${name}/",
+        command     => "cp *.crt ${remote_name}.${name}.tblk/Contents/Resources/; cp *.key ${remote_name}.${name}.tblk/Contents/Resources/",
+        refreshonly => true,
+        require     => [  File["/etc/openvpn/${server}/download-configs/${name}/ca.crt"],
                           File["/etc/openvpn/${server}/download-configs/${name}/${name}.key"],
                           File["/etc/openvpn/${server}/download-configs/${name}/${name}.crt"],
                           File["/etc/openvpn/${server}/download-configs/${name}/${remote_name}.${name}.tblk/Contents/Resources/"] ],
